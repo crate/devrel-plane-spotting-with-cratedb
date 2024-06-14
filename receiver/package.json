@@ -4,7 +4,7 @@
   "description": "Receiver component.",
   "main": "receiver.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node receiver.js"
   },
   "type": "module",
   "author": "CrateDB Developer Relations",
