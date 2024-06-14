@@ -17,8 +17,7 @@ sbs1Client.on('message', async(msg) => {
   if (DEBUG_MODE) { console.log(msg); }
 
   const msgData = {
-    hex_ident: msg.hex_ident,
-    last_updated: Date.now()
+    plane_id: msg.hex_ident
   };
 
   if (msg.lat && msg.lon) {
@@ -32,14 +31,17 @@ sbs1Client.on('message', async(msg) => {
   }
 
   if (msg.callsign) {
-    msgData.callsign = msg.callsign.trim();
+    msgData.callsign = parseInt(msg.callsign.trim(), 10);
+    if (isNaN(msgData.callsign)) { 
+      delete msgData.callsign;
+    };
   }
 
   if (msg.squawk) {
-    msgData.squawk = msg.squawk.trim();
+    msgData.squawk = parseInt(msg.squawk.trim(), 10);
   }
 
-  if (Object.keys(msgData).length > 2) {
+  if (Object.keys(msgData).length > 1) {
     console.log(msgData);
   }
 });
