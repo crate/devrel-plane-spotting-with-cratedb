@@ -1,0 +1,16 @@
+{
+  "name": "receiver",
+  "version": "0.0.1",
+  "description": "Receiver component.",
+  "main": "receiver.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "author": "CrateDB Developer Relations",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "sbs1": "^0.2.5"
+  }
+}
