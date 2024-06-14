@@ -1,17 +1,23 @@
 import * as dotenv from 'dotenv';
 import * as sbs1 from 'sbs1';
-// TODO - Postgres or Crate...
+import pg from 'pg';
+import squel from 'squel';
 
 dotenv.config();
 
 const DEBUG_MODE = process.env.DEBUG_MODE === '1';
-const SBS_HOST = process.env.SBS_HOST || '127.0.0.1';
-const SBS_PORT = process.env.SBS_PORT || 30003;
 
 const sbs1Client = sbs1.createClient({
-  host: SBS_HOST,
-  port: SBS_PORT
+  host: process.env.SBS_HOST,
+  port: process.env.SBS_PORT
 });
+
+const crateDBClient = new pg.Client({
+  connectionString: `postgresql://${process.env.CRATEDB_USER}:${process.env.CRATEDB_PASSWORD}@${process.env.CRATEDB_HOST}:${process.env.CRATEDB_PORT}/${process.env.CRATEDB_SCHEMA}`
+});
+
+await crateDBClient.connect();
+console.log(`Connected as ${process.env.CRATEDB_USER} to CrateDB at ${process.env.CRATEDB_HOST}:${process.env.CRATEDB_PORT}.`);
 
 sbs1Client.on('message', async(msg) => {
   if (DEBUG_MODE) { console.log(msg); }
@@ -43,5 +49,18 @@ sbs1Client.on('message', async(msg) => {
 
   if (Object.keys(msgData).length > 1) {
     console.log(msgData);
+
+    const sql = squel.insert()
+      .into('flight_updates')
+      .setFields(msgData)
+      .toString();
+
+    if (DEBUG_MODE) { console.log(sql); }
+
+    const result = await crateDBClient.query(sql);
+    
+    if (DEBUG_MODE && result.rowCount === 1) {
+      console.log('Written to CrateDB.');
+    }
   }
 });
