@@ -33,14 +33,11 @@ sbs1Client.on('message', async(msg) => {
   }
 
   if (msg.altitude) {
-    msgData.altitude = msg.altitude;
+    msgData.altitude = parseInt(msg.altitude, 10);
   }
 
   if (msg.callsign) {
-    msgData.callsign = parseInt(msg.callsign.trim(), 10);
-    if (isNaN(msgData.callsign)) { 
-      delete msgData.callsign;
-    };
+    msgData.callsign = msg.callsign.trim();
   }
 
   if (msg.squawk) {
@@ -50,14 +47,14 @@ sbs1Client.on('message', async(msg) => {
   if (Object.keys(msgData).length > 1) {
     console.log(msgData);
 
-    const sql = squel.insert()
-      .into('flight_updates')
+    const messageSql = squel.insert()
+      .into('radio_messages')
       .setFields(msgData)
       .toString();
 
-    if (DEBUG_MODE) { console.log(sql); }
+    if (DEBUG_MODE) { console.log(messageSql); }
 
-    const result = await crateDBClient.query(sql);
+    const result = await crateDBClient.query(messageSql);
     
     if (DEBUG_MODE && result.rowCount === 1) {
       console.log('Written to CrateDB.');
