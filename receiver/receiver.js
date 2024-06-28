@@ -13,7 +13,8 @@ const sbs1Client = sbs1.createClient({
 });
 
 const crateDBClient = new pg.Client({
-  connectionString: `postgresql://${process.env.CRATEDB_USER}:${process.env.CRATEDB_PASSWORD}@${process.env.CRATEDB_HOST}:${process.env.CRATEDB_PORT}/${process.env.CRATEDB_SCHEMA}`
+  connectionString: `postgresql://${process.env.CRATEDB_USER}:${process.env.CRATEDB_PASSWORD}@${process.env.CRATEDB_HOST}:${process.env.CRATEDB_PORT}/${process.env.CRATEDB_SCHEMA}`,
+  ssl: process.env.CRATEDB_SSLMODE === '1'
 });
 
 await crateDBClient.connect();
