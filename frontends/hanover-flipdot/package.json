@@ -1,0 +1,17 @@
+{
+  "name": "planespotting-hanover-flipdot",
+  "version": "1.0.0",
+  "main": "flipdot-alerter.js",
+  "type": "module",
+  "scripts": {
+    "start": "node flipdot-alerter.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "description": "",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "flipdot-display": "^1.2.0",
+    "mqtt": "^5.7.3"
+  }
+}
