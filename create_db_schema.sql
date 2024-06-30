@@ -14,18 +14,9 @@ CREATE TABLE IF NOT EXISTS planespotting.radio_messages (
   day GENERATED ALWAYS AS date_trunc('day', CURRENT_TIMESTAMP)
 );
 
-# Consider moving this to an object and storing the API response.
 CREATE TABLE IF NOT EXISTS planespotting.flights (
-  plane_id STRING PRIMARY KEY,
-  callsign STRING,
-  registration STRING,
-  origin_iata STRING,
-  origin_name STRING,
-  destination_iata STRING,
-  destination_name STRING,
-  aircraft_type STRING,
-  operator_iata STRING,
-  flight_number STRING,
+  callsign STRING PRIMARY KEY,
+  flightinfo OBJECT,
   day GENERATED ALWAYS AS date_trunc('day', CURRENT_TIMESTAMP)
 );
 
