@@ -20,5 +20,4 @@ from (select distinct plane_id from planespotting.radio_messages) as planes
 ) as interesting_planes WHERE latest_ts >= current_timestamp - '2 mins'::interval and plane_id is not null and callsign is not null and altitude is not null and position is not null order by last_update ASC;
 ```
 
-TODO... work out when to call the API to get the plane data.  Periodically run the above query, check to see if we have the plane data.  If not get it, and put it in the database.  Then push the information out to the front end via MQTT?
-
+Grafana: https://cratedb.com/docs/guide/integrate/visualize/grafana.html
