@@ -46,7 +46,7 @@ async function displayData(lines) {
   await signMutex.runExclusive(async () => {
     for (let n = 0; n < parseInt(process.env.SIGN_REPEATS, 10); n++) {
       for (const line of lines) {
-        const xOffset = Math.floor((SIGN_COLS - calculatePixelWidth(line)) / 2);
+        const xOffset = Math.floor((parseInt(process.env.SIGN_COLS, 10) - calculatePixelWidth(line)) / 2);
         flippy.writeText(line, { font: 'Banner3' }, [0, xOffset], false, true);
         flippy.send();
         await sleep(parseInt(process.env.SIGN_FLIP_INTERVAL, 10));
