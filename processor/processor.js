@@ -1,7 +1,6 @@
 import * as dotenv from 'dotenv';
 import pg from 'pg';
-import squel from 'squel';
-// TODO MQTT https://www.npmjs.com/package/mqtt
+import mqtt from 'mqtt';
 
 dotenv.config();
 
@@ -19,6 +18,13 @@ const crateDBClient = new pg.Client({
 
 await crateDBClient.connect();
 console.log(`Connected as ${process.env.CRATEDB_USER} to CrateDB at ${process.env.CRATEDB_HOST}:${process.env.CRATEDB_PORT}.`);
+
+const mqttClient = mqtt.connect(`${process.env.MQTT_PROTOCOL}://${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`, {
+  username: process.env.MQTT_USER,
+  password: process.env.MQTT_PASSWORD
+});
+
+console.log(`Connected as ${process.env.MQTT_USER} to MQTT broker at ${process.env.MQTT_HOST}:${process.env.MQTT_PORT}.`);
 
 const latestPlaneQuery = {
   name: 'latest-plane',
@@ -117,7 +123,9 @@ while (true) {
         altitude: res.rows[0].altitude
       };
 
-      // TODO Use the data to put a message on MQTT, if the common object contains data.
+      // Publish the alert to the MQTT broker.
+      const mqttResponse = mqttClient.publish(process.env.MQTT_CHANNEL, JSON.stringify(displayDetails));
+      if (DEBUG_MODE) { console.log(`Published message to ${process.env.MQTT_CHANNEL} MQTT channel.`); }
 
       console.log(`Flight with callsign ${callsign} has triggered an alert.`);
       console.log(displayDetails);
