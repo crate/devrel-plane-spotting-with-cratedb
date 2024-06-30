@@ -124,8 +124,8 @@ while (true) {
       };
 
       // Publish the alert to the MQTT broker.
-      const mqttResponse = mqttClient.publish(process.env.MQTT_CHANNEL, JSON.stringify(displayDetails));
-      if (DEBUG_MODE) { console.log(`Published message to ${process.env.MQTT_CHANNEL} MQTT channel.`); }
+      const mqttResponse = mqttClient.publish(process.env.MQTT_TOPIC, JSON.stringify(displayDetails));
+      if (DEBUG_MODE) { console.log(`Published message to ${process.env.MQTT_TOPIC} MQTT topic.`); }
 
       console.log(`Flight with callsign ${callsign} has triggered an alert.`);
       console.log(displayDetails);
