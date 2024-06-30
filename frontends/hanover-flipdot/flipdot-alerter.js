@@ -66,7 +66,7 @@ flippy.on('error', (err) => {
 });
 
 flippy.once('open', () => {
-  console.log(`Connected to flip dot device at ${SIGN_DEVICE}.`);
+  console.log(`Connected to flip dot device at ${process.env.SIGN_DEVICE}.`);
   flippy.fill(0xFF);
 });
 
