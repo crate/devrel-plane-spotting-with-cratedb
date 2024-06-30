@@ -10,6 +10,7 @@
   "license": "MIT",
   "description": "",
   "dependencies": {
+    "async-mutex": "^0.5.0",
     "dotenv": "^16.4.5",
     "flipdot-display": "^1.2.0",
     "mqtt": "^5.7.3"
