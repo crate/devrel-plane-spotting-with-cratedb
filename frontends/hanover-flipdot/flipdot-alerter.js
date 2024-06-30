@@ -23,7 +23,12 @@ function calculatePixelWidth(msg) {
   return pixelCount;
 }
 
-const flippy = new FlipDot(process.env.SIGN_DEVICE, process.env.SIGN_ADDRESS, process.env.SIGN_ROWS, process.env.SIGN_COLS);
+const flippy = new FlipDot(
+  process.env.SIGN_DEVICE, 
+  parseInt(process.env.SIGN_ADDRESS, 10), 
+  parseInt(process.env.SIGN_ROWS, 10), 
+  parseInt(process.env.SIGN_COLS, 10)
+);
 
 const mqttClient = mqtt.connect(`${process.env.MQTT_PROTOCOL}://${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`, {
   username: process.env.MQTT_USER,
@@ -44,12 +49,12 @@ async function displayData(lines) {
         const xOffset = Math.floor((SIGN_COLS - calculatePixelWidth(line)) / 2);
         flippy.writeText(line, { font: 'Banner3' }, [0, xOffset], false, true);
         flippy.send();
-        await sleep(process.env.SIGN_FLIP_INTERVAL);
+        await sleep(parseInt(process.env.SIGN_FLIP_INTERVAL, 10));
       }
 
       flippy.fill(0xFF);
-      if (n < process.env.SIGN_REPEATS) {
-        await sleep(process.env.SIGN_FLIP_INTERVAL);
+      if (n < parseInt(process.env.SIGN_REPEATS, 10)) {
+        await sleep(parseInt(process.env.SIGN_FLIP_INTERVAL, 10));
       }
     }
   });
