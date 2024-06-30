@@ -33,101 +33,102 @@ const latestPlaneQuery = {
   ORDER BY last_update ASC LIMIT 1`
 };
 
-// TODO start of while loop?
-const res = await crateDBClient.query(latestPlaneQuery);
-let flight;
+while (true) {
+  const res = await crateDBClient.query(latestPlaneQuery);
+  let flight;
 
-if (res.rowCount === 1) {
-  const callsign = res.rows[0].callsign.trim();
-  console.log(`Checking for callsign ${callsign}.`);
+  if (res.rowCount === 1) {
+    const callsign = res.rows[0].callsign.trim();
+    console.log(`Checking for callsign ${callsign}.`);
 
-  const getFlightDetailsQuery = {
-    name: 'get-flight-details',
-    text: `SELECT flightinfo FROM planespotting.flights WHERE callsign=$1 AND day=date_trunc('day', CURRENT_TIMESTAMP)`,
-    values: [ callsign ]
-  };
-
-  const flightDetailsRes = await crateDBClient.query(getFlightDetailsQuery);
-
-  if (flightDetailsRes.rowCount === 0) {
-    // We haven't seen this flight before, get details from FlightAware.
-    const flightAwareAPIURL = `https://aeroapi.flightaware.com/aeroapi/flights/${callsign}?max_pages=1`;
-
-    const flightAwareResponse = await fetch(flightAwareAPIURL, {
-      headers: {
-        'x-apikey': process.env.FLIGHTAWARE_API_KEY,
-        'Accept': 'application/json'
-      }
-    });
-
-    if (flightAwareResponse.status === 200) {
-      const flightData = await flightAwareResponse.json();
-
-      if (flightData.flights) {
-        for (flight of flightData.flights) {
-          // The response contains an array of recent past, current and
-          // planned future flights with this ID.  The one we want is
-          // currently in progress, so progress_percent between 1 and 99.
-          if (flight.progress_percent > 0 && flight.progress_percent < 100) {
-            if (DEBUG_MODE) { console.log(`Storing details for ${callsign} in CrateDB.`); }
-
-            // Store the flight details in CrateDB.
-            const flightInsertQuery = {
-              text: `INSERT INTO planespotting.flights (callsign, flightinfo) VALUES ($1, $2)`,
-              values: [ callsign, flight ]
-            };
-
-            const flightInsertRes = await crateDBClient.query(flightInsertQuery);
-            if (flightInsertRes.rowCount === 1 && DEBUG_MODE) {
-              console.log('Stored flight details in CrateDB.');
-            }
-
-            // Don't look for other flights in the array of recent flights as we found it.
-            break;
-          }
-        }
-      }
-    } else {
-      if (DEBUG_MODE) { console.log(`Error: FlightAware API returned ${flightAwareResponse.status} code.`); }
-    }
-  } else {
-    if (DEBUG_MODE) { console.log('Found flight in CrateDB.'); }
-    flight = flightDetailsRes.rows[0].flightinfo;
-  }
-
-  // We found a flight, but is it interesting / alert worthy?
-  const isInterestingQuery = {
-    name: 'is-interesting',
-    text: 'SELECT description FROM planespotting.interesting_aircraft_types WHERE aircraft_type=$1',
-    values: [ flight.aircraft_type ]
-  };
-
-  if (DEBUG_MODE) { console.log(`Trying to determine if ${flight.aircraft_type} is interesting...`); }
-
-  const isInterestingRes = await crateDBClient.query(isInterestingQuery);
-  
-  if (isInterestingRes.rowCount === 1) {
-    // This flight is alert worthy.
-    const displayDetails = {
-      flightNumber: flight.ident_iata || '',
-      registration: flight.registration || '',
-      aircraftType: isInterestingRes.rows[0].description,
-      origin: flight?.origin?.code_iata || '',
-      destination: flight?.destination?.code_iata || '',
-      altitude: res.rows[0].altitude
+    const getFlightDetailsQuery = {
+      name: 'get-flight-details',
+      text: `SELECT flightinfo FROM planespotting.flights WHERE callsign=$1 AND day=date_trunc('day', CURRENT_TIMESTAMP)`,
+      values: [ callsign ]
     };
 
-    // TODO Use the data to put a message on MQTT, if the common object contains data.
+    const flightDetailsRes = await crateDBClient.query(getFlightDetailsQuery);
 
-    console.log(`Flight with callsign ${callsign} has triggered an alert.`);
-    console.log(displayDetails);
+    if (flightDetailsRes.rowCount === 0) {
+      // We haven't seen this flight before, get details from FlightAware.
+      const flightAwareAPIURL = `https://aeroapi.flightaware.com/aeroapi/flights/${callsign}?max_pages=1`;
+
+      const flightAwareResponse = await fetch(flightAwareAPIURL, {
+        headers: {
+          'x-apikey': process.env.FLIGHTAWARE_API_KEY,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (flightAwareResponse.status === 200) {
+        const flightData = await flightAwareResponse.json();
+
+        if (flightData.flights) {
+          for (flight of flightData.flights) {
+            // The response contains an array of recent past, current and
+            // planned future flights with this ID.  The one we want is
+            // currently in progress, so progress_percent between 1 and 99.
+            if (flight.progress_percent > 0 && flight.progress_percent < 100) {
+              if (DEBUG_MODE) { console.log(`Storing details for ${callsign} in CrateDB.`); }
+
+              // Store the flight details in CrateDB.
+              const flightInsertQuery = {
+                text: `INSERT INTO planespotting.flights (callsign, flightinfo) VALUES ($1, $2)`,
+                values: [ callsign, flight ]
+              };
+
+              const flightInsertRes = await crateDBClient.query(flightInsertQuery);
+              if (flightInsertRes.rowCount === 1 && DEBUG_MODE) {
+                console.log('Stored flight details in CrateDB.');
+              }
+
+              // Don't look for other flights in the array of recent flights as we found it.
+              break;
+            }
+          }
+        }
+      } else {
+        if (DEBUG_MODE) { console.log(`Error: FlightAware API returned ${flightAwareResponse.status} code.`); }
+      }
+    } else {
+      if (DEBUG_MODE) { console.log('Found flight in CrateDB.'); }
+      flight = flightDetailsRes.rows[0].flightinfo;
+    }
+
+    // We found a flight, but is it interesting / alert worthy?
+    const isInterestingQuery = {
+      name: 'is-interesting',
+      text: 'SELECT description FROM planespotting.interesting_aircraft_types WHERE aircraft_type=$1',
+      values: [ flight.aircraft_type ]
+    };
+
+    if (DEBUG_MODE) { console.log(`Trying to determine if ${flight.aircraft_type} is interesting...`); }
+
+    const isInterestingRes = await crateDBClient.query(isInterestingQuery);
+    
+    if (isInterestingRes.rowCount === 1) {
+      // This flight is alert worthy.
+      const displayDetails = {
+        flightNumber: flight.ident_iata || '',
+        registration: flight.registration || '',
+        aircraftType: isInterestingRes.rows[0].description,
+        origin: flight?.origin?.code_iata || '',
+        destination: flight?.destination?.code_iata || '',
+        altitude: res.rows[0].altitude
+      };
+
+      // TODO Use the data to put a message on MQTT, if the common object contains data.
+
+      console.log(`Flight with callsign ${callsign} has triggered an alert.`);
+      console.log(displayDetails);
+    } else {
+      console.log(`Flight with callsign ${callsign} does not trigger an alert.`);
+    }
   } else {
-    console.log(`Flight with callsign ${callsign} does not trigger an alert.`);
+    console.log('Nothing to do.');
   }
 
-  // TODO put this in a loop and sleep cycle.
-} else {
-  console.log('Nothing to do.');
+  // Wait a bit before looking again.
+  if (DEBUG_MODE) { console.log('Sleeping.'); }
+  await sleep();
 }
-
-await crateDBClient.end();
