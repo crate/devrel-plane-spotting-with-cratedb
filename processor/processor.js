@@ -105,7 +105,7 @@ while (true) {
     const isInterestingQuery = {
       name: 'is-interesting',
       text: 'SELECT description FROM planespotting.interesting_aircraft_types WHERE aircraft_type=$1',
-      values: [ flight.aircraft_type || 'UNKNOWN' ]
+      values: [ flight?.aircraft_type || 'UNKNOWN' ]
     };
 
     if (DEBUG_MODE) { console.log(`Trying to determine if ${flight.aircraft_type} is interesting...`); }
