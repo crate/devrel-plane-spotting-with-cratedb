@@ -1,5 +1,6 @@
 # TODO README
 
+Interested in learning more about this probject?  There's a full explanation and demo in [this video on YouTube](https://www.youtube.com/watch?v=YIUJTbrwlAs).
 
 Callsigns in the last hour:
 
